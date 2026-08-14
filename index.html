@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Lotes de Súper Jugo</title>
+    <style>
+        :root {
+            --primary: #2d6a4f;
+            --bg: #f4f7f6;
+            --card: #ffffff;
+            --text: #333333;
+            --border: #d1d5db;
+        }
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            padding: 20px;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        .card {
+            background: var(--card);
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h2, h3 { color: var(--primary); margin-top: 0; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; }
+        select, input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            background-color: var(--primary);
+            color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover { background-color: #1b4332; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            text-align: left;
+            padding: 10px;
+            border-bottom: 1px solid var(--border);
+        }
+        th { background-color: var(--bg); color: var(--primary); }
+        .results-section { display: none; margin-top: 30px; }
+        .produce-box {
+            background-color: #e9ecef;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>Calculadora de Súper Jugo</h2>
+    
+    <div class="form-group">
+        <label for="juiceType">Seleccione el Tipo de Jugo:</label>
+        <select id="juiceType">
+            <option value="naranja">Súper Jugo de Naranja</option>
+            <option value="toronja">Súper Jugo de Toronja</option>
+            <option value="limon">Súper Jugo de Limón</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="calcMethod">Método de Cálculo:</label>
+        <select id="calcMethod" onchange="toggleInputLabel()">
+            <option value="gallons">Tamaño del Lote Objetivo (Galones)</option>
+            <option value="natural">Jugo Natural Disponible (Gramos)</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label id="inputLabel" for="amountInput">Galones Objetivo:</label>
+        <input type="number" id="amountInput" placeholder="Ingrese la cantidad..." step="0.1" min="0">
+    </div>
+
+    <button onclick="calculateRecipe()">Calcular Ingredientes</button>
+
+    <div id="results" class="results-section">
+        <h3>Ingredientes Requeridos</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Ingrediente</th>
+                    <th>Peso (g)</th>
+                    <th>Peso (kg)</th>
+                </tr>
+            </thead>
+            <tbody id="recipeBody">
+                <!-- Los datos son generados por JS -->
+            </tbody>
+        </table>
+
+        <div class="produce-box">
+            <strong>Materia Prima Estimada:</strong>
+            <p id="produceEstimate" style="margin: 5px 0 0 0;"></p>
+            <em style="font-size: 12px; color: #666;">*Las estimaciones se basan en el rendimiento promedio. Los requisitos reales variarán según la temporada de la fruta y la eficiencia de extracción.</em>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Proporciones Base Inquebrantables (Gramos por 1 Galón)
+    const baseRecipes = {
+        naranja: {
+            "Agua": 1700, "Jugo Natural de Naranja": 2000, "Azúcar": 248, 
+            "Ácido Cítrico": 20, "Ácido Málico": 4, "Cáscara de Naranja": 300
+        },
+        toronja: {
+            "Agua": 2570.48, "Jugo Natural de Toronja": 1100, "Azúcar": 396, 
+            "Ácido Cítrico": 44, "Ácido Málico": 15.4, "Cáscara de Toronja": 240
+        },
+        limon: {
+            "Agua": 3292.08, "Jugo Natural de Limón": 837.76, 
+            "Ácido Cítrico": 119.68, "Ácido Málico": 18.04, "Cáscara de Limón": 131.56
+        }
+    };
+
+    // Rendimientos Promedio de la Fruta (en gramos por una sola pieza de fruta)
+    const fruitAverages = {
+        naranja: { juice: 65, peel: 25, totalWeight: 140 },
+        toronja: { juice: 110, peel: 40, totalWeight: 260 },
+        limon: { juice: 18, peel: 7, totalWeight: 50 }
+    };
+
+    function toggleInputLabel() {
+        const method = document.getElementById('calcMethod').value;
+        const label = document.getElementById('inputLabel');
+        label.innerText = method === 'gallons' ? 'Tamaño del Lote Objetivo (Galones):' : 'Jugo Natural Disponible (Gramos):';
+    }
+
+    function calculateRecipe() {
+        const type = document.getElementById('juiceType').value;
+        const method = document.getElementById('calcMethod').value;
+        const inputAmount = parseFloat(document.getElementById('amountInput').value);
+
+        if (isNaN(inputAmount) || inputAmount <= 0) {
+            alert("Por favor, ingrese un número positivo válido.");
+            return;
+        }
+
+        const recipe = baseRecipes[type];
+        let multiplier = 0;
+
+        // Determinar el multiplicador basado en el método seleccionado
+        if (method === 'gallons') {
+            multiplier = inputAmount; // Las proporciones se basan en 1 galón
+        } else if (method === 'natural') {
+            const baseJuiceKey = Object.keys(recipe).find(k => k.includes("Jugo Natural"));
+            multiplier = inputAmount / recipe[baseJuiceKey];
+        }
+
+        // Renderizar la Tabla de Recetas
+        const tbody = document.getElementById('recipeBody');
+        tbody.innerHTML = '';
+        
+        let requiredJuice = 0;
+        let requiredPeel = 0;
+
+        for (const [ingredient, baseWeight] of Object.entries(recipe)) {
+            const calculatedWeightGrams = (baseWeight * multiplier).toFixed(2);
+            const calculatedWeightKg = (baseWeight * multiplier / 1000).toFixed(3);
+            
+            // Rastrear jugo y cáscara para estimaciones de materia prima
+            if (ingredient.includes("Jugo")) requiredJuice = calculatedWeightGrams;
+            if (ingredient.includes("Cáscara")) requiredPeel = calculatedWeightGrams;
+
+            tbody.innerHTML += `
+                <tr>
+                    <td>${ingredient}</td>
+                    <td><strong>${calculatedWeightGrams} g</strong></td>
+                    <td><strong>${calculatedWeightKg} kg</strong></td>
+                </tr>
+            `;
+        }
+
+        // Calcular Estimaciones de Materia Prima
+        const averages = fruitAverages[type];
+        
+        // Necesitamos suficiente fruta para alcanzar AMBOS requisitos (jugo y cáscara)
+        const fruitsForJuice = Math.ceil(requiredJuice / averages.juice);
+        const fruitsForPeel = Math.ceil(requiredPeel / averages.peel);
+        const totalFruits = Math.max(fruitsForJuice, fruitsForPeel);
+        
+        const totalWeightGrams = totalFruits * averages.totalWeight;
+        const totalWeightLbs = (totalWeightGrams / 453.592).toFixed(2);
+        const totalWeightKg = (totalWeightGrams / 1000).toFixed(2);
+
+        document.getElementById('produceEstimate').innerHTML = 
+            `Se requieren aprox. <strong>${totalFruits} frutas</strong>.<br>
+             Peso estimado de materia prima cruda: <strong>${totalWeightLbs} lbs</strong> (${totalWeightKg} kg).`;
+
+        document.getElementById('results').style.display = 'block';
+    }
+</script>
+
+</body>
+</html>
