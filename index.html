@@ -82,6 +82,7 @@
             <option value="naranja">Súper Jugo de Naranja</option>
             <option value="toronja">Súper Jugo de Toronja</option>
             <option value="limon">Súper Jugo de Limón</option>
+            <option value="limon_nuevo">Súper Jugo de Limón Nuevo</option>
         </select>
     </div>
 
@@ -137,6 +138,11 @@
         limon: {
             "Agua": 3292.08, "Jugo Natural de Limón": 837.76, 
             "Ácido Cítrico": 119.68, "Ácido Málico": 18.04, "Cáscara de Limón": 131.56
+        },
+        limon_nuevo: {
+            "Agua": 3229.6, "Jugo Natural de Limón": 837.76, 
+            "Ácido Cítrico": 117.48, "Cáscara de Limón": 131.56,
+            "Ácido Málico": 17.6, "Ácido Ascórbico": 4.4, "Azúcar": 55, "Sal": 6.6
         }
     };
 
@@ -144,7 +150,8 @@
     const fruitAverages = {
         naranja: { juice: 65, peel: 25, totalWeight: 140 },
         toronja: { juice: 110, peel: 40, totalWeight: 260 },
-        limon: { juice: 18, peel: 7, totalWeight: 50 }
+        limon: { juice: 18, peel: 7, totalWeight: 50 },
+        limon_nuevo: { juice: 18, peel: 7, totalWeight: 50 }
     };
 
     function toggleInputLabel() {
